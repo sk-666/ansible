@@ -622,6 +622,20 @@ def get_chain_policy(iptables_path, module, params):
     return None
 
 
+def check_chain(iptables_path, module, params):
+    cmd = push_arguments(iptables_path, '-L', params['chain'])
+    rc = module.run_command(cmd, check_rc=True)
+    if rc == 0:
+        return True
+    else:
+        return False
+
+
+def chain_create(iptables_path, module, params):
+    cmd = push_arguments(iptables_path, '-N', params, make_rule=False)
+    module.run_command(cmd, check_rc=True)
+
+
 def main():
     module = AnsibleModule(
         supports_check_mode=True,
@@ -735,10 +749,13 @@ def main():
         if args['changed'] is False:
             # Target is already up to date
             module.exit_json(**args)
-
+        # Check chain existence
+        chain_exists = check_chain(iptables_path, module, module.params)
         # Check only; don't modify
         if not module.check_mode:
             if should_be_present:
+                if not chain_exists:
+                    chain_create(iptables_path, module, module.params)
                 if insert:
                     insert_rule(iptables_path, module, module.params)
                 else:
