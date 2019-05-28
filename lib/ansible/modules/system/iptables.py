@@ -623,8 +623,8 @@ def get_chain_policy(iptables_path, module, params):
 
 
 def check_chain(iptables_path, module, params):
-    cmd = push_arguments(iptables_path, '-L', params['chain'])
-    rc = module.run_command(cmd, check_rc=True)
+    cmd = push_arguments(iptables_path, '-L', params, make_rule=False)
+    rc, _, __ = module.run_command(cmd, check_rc=False)
     if rc == 0:
         return True
     else:
